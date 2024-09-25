@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRAYOJN</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<!-- Main heading -->
+<div class="container">
+    <div class="row align-items-center">
+        <div class="col-12 col-md-3 text-center">
+            <img src="./iihmr1.jpeg" alt="IIHMR Logo" class="img-fluid">
+        </div>
+        <div class="col-12 col-md-9">
+            <h1 class="mt-3 mt-md-0 text-center text-md-center" style="color: #000000;">
+                <span class="d-block text-center">PRAYOJN</span>
+                Platform for Resource Allocation and Optimization for Healthcare Facilities
+            </h1>
+        </div>
+    </div>
+</div>
+<div class="row justify-content-center mt-3">
+    <div class="col-auto">
+        <a href="abo.html" class="btn btn-primary">About Us</a>
+    </div>
+    <div class="col-auto">
+        <a href="https://docs.google.com/forms/d/1_SHAjgcxTzQZmSjfAksUv9QCRWSd8vjHob2wGUos3W0/edit" class="btn btn-primary" target="_blank">Feedback Form</a>
+    </div>
+</div>
+<div class="container">
+    <h1>Introduction</h1>
+    <p>
+        The PRAYOJN tool for Resource Allocation and Optimization for Healthcare Facilities is a comprehensive web-based tool, based on WHO devised WISN (Workload Indicator Staffing Need, a Healthcare HR tool) model, designed to streamline and enhance the process of calculating and optimizing healthcare workforce requirements within various hospital departments. The platform facilitates data-driven decision-making by allowing users to input specific departmental data, such as department names (e.g., pharmacy, diagnostic lab, nursing station, OPD, IPD, general surgery, etc.), type of employees (e.g., doctors, nurses, technicians), workdays per year, work hours per day, and current staff strength in Full-Time Equivalents (FTE).
+        <br><br>
+        PRAYOJN offers a suite of calculators to accurately determine the available work hours per year, assess the principal task staff requirements, and compute the Category Allowance Factor (CAF) and Individual Allowance Factor (IAF). These tools are essential for understanding the staffing needs for various tasks, including both clinical and non-clinical activities within a department. By considering the number of different tasks and ancillary responsibilities, PRAYOJN enables healthcare administrators to generate precise staffing requirements that align with the Workload Indicators of Staffing Need (WISN) methodology.
+        <br><br>
+        The platform's user-friendly interface guides users through each step, from inputting departmental data to generating forms and calculating key metrics. This ensures that hospitals can maintain optimal staffing levels, improving efficiency and ensuring that resources are allocated effectively across all departments. Whether it’s calculating the required staff for principal tasks or understanding the full scope of ancillary duties, PRAYOJN is an invaluable tool for optimizing healthcare operations.
+    </p>
+</div>
+<div class="share-container">
+    <button id="shareBtn">
+        <img src="https://img.icons8.com/ios-glyphs/30/000000/share.png" alt="Share">
+    </button>
+</div>
+
+<!-- First Calculator: Calculate Available Work Hours/Year -->
+<div class="container">
+    <h1>Prerequisite Data Inputs</h1>
+    <form id="wisn-form">
+        <label for="department">Department Name:</label>
+        <input type="text" id="department" name="department" required>
+        <p style="font-size: smaller; font-style: italic;"><strong>"any dept. of hospital i.e pharmacy, diagnostic lab, nursing station, OPD, IPD, General surgery etc"</strong></p>
+        
+        <label for="employeeType">Type of Employee:</label>
+        <select id="employeeType" name="employeeType" required>
+            <option value="doctor">Doctor</option>
+            <option value="nurse">Nurse</option>
+            <option value="midwives">Midwives</option>
+            <option value="labTechnicians">Lab Technicians</option>
+            <option value="phlebotomist">Phlebotomist</option>
+            <option value="pharmacist">Pharmacist</option>
+            <option value="radiologist">Radiologist</option>
+            <option value="others">Others</option>
+        </select>
+        
+        <label for="otherEmployeeType" id="otherEmployeeTypeLabel" style="display:none;">Please Specify:</label>
+        <input type="text" id="otherEmployeeType" name="otherEmployeeType" style="display:none;">
+        
+        <label for="workdays">Workdays/Year (a):</label>
+        <input type="number" id="workdays" name="workdays" required oninput="updateGlobalVariables('a', this.value)">
+        <p style="font-size: smaller; font-style: italic;"><strong>"Enter value < 365, i.e If all Sundays, 12 public holidays, 11 casual leaves, 10 sick leaves are considered, it will be 365-52-12-11-10 = 280 days"</strong></p>
+
+        <label for="workhours">Workhours/Day (b):</label>
+        <input type="number" id="workhours" name="workhours" required oninput="updateGlobalVariables('b', this.value)">
+        <p style="font-size: smaller; font-style: italic;"><strong>"If a single Fulltime employee works in 8 hr shift and takes 1 hr break for tiffin, his/her work-hours/day = 7"</strong></p>
+        
+        <label for="currentStaff">Current Staff Strength (in FTE) (g):</label>
+        <input type="number" id="currentStaffFirst" name="currentStaff" step="0.01" required oninput="updateGlobalVariables('g', this.value)">
+        <p style="font-size: smaller; font-style: italic;"><strong>"Current count of staffs in that particular cohort in Full Time Equivalent (FTE)"</strong></p>
+
+        <button type="button" onclick="calculateWISN()">Calculate Available Work Hours/Year</button>
+    </form>
+    <div id="available-workhours-result"></div>
+</div>
+<hr>
+
+<!-- Second Calculator: Principal Task Staff Requirement -->
+<div class="container">
+    <h1>Principal Task Staff Requirement</h1>
+    <form id="staff-form">
+        <div id="tasks-container">
+            <div class="form-group task-form">
+                <h3>Task 1</h3>
+                <label for="taskName0">Task Name:</label>
+                <input type="text" id="taskName0" placeholder="Enter task name" required>
+
+                <label for="unitTime0">Unit Time for Each Task (Minutes):</label>
+                <input type="number" id="unitTime0" placeholder="Enter unit time in Minutes" step="0.01" required>
+                <p style="font-size: smaller; font-style: italic;"><strong>"i.e 8 min/patient's phlebotomy, 10 min/ sample transport trip, 15 min/patient for IP collection"</strong></p>
+
+                <label for="taskCount0">Total Per Day Count of the Task for all staffs:</label>
+                <input type="number" id="taskCount0" placeholder="Enter total task count per day" required>
+                <p style="font-size: smaller; font-style: italic;"><strong>"Actual workload/day i.e 510 OP phlebotomy patients/ day, 24 sample trips/ day, 60 test-record entry/ day"</strong></p>
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary mb-2" onclick="addPrincipalTask()">+ Add Task</button>
+        <button type="button" onclick="calculateStaff()">Calculate Required Staff</button>
+    </form>
+    <div class="result" id="principal-task-result"></div>
+    <canvas id="principalTasksPieChart" style="max-width: 600px; margin: auto; margin-top: 30px;"></canvas>
+</div>
+<hr>
+
+<!-- Third Calculator: Category Allowance Factor (CAF) Calculator -->
+<div class="container">
+    <h1>Category Allowance Factor Calculator</h1>
+    <h3>For Supporting Tasks</h3>
+    <form id="caf-form">
+        <div id="caf-tasks-container">
+            <div class="form-group task">
+                <h3>Task 1</h3>
+                <label for="taskNameCAF0">Task Name:</label>
+                <input type="text" id="taskNameCAF0" placeholder="Enter task name" required>
+
+                <label for="taskMinutesCAF0">Total Minutes Required/Day :</label>
+                <input type="number" id="taskMinutesCAF0" placeholder="Enter total minutes required by all staffs  for task" required>
+                <p style="font-size: smaller; font-style: italic;"><strong>"Stock -register maintaining = 8 min/day, Cotton-box preparing = 2 hours/day are required time for each supporting task in lab"</strong></p>
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary mb-2" onclick="addCAFTask()">+ Add Task</button>
+        <button type="button" style="width: 100%;" onclick="calculateCAF()">Calculate CAF</button>
+    </form>
+    <div id="caf-result"></div>
+</div>
+<hr>
+
+<!-- Fourth Calculator: Individual Allowance Factor (IAF) Calculation -->
+<div class="container">
+    <h1>Individual Allowance Factor (IAF) Calculation</h1>
+    <h3>For Ancillary Tasks</h3>
+    <form id="iafForm">
+        <input type="hidden" id="workHoursPerDay" step="0.1" required>
+        <input type="hidden" id="workDaysPerYear" required>
+
+        <div id="taskInputs">
+            <div class="form-group task">
+                <h3>Task 1</h3>
+                <label for="taskNameIAF0">Task Name:</label>
+                <input type="text" id="taskNameIAF0" required>
+
+                <label for="taskMinutesIAF0">Minutes required for this task (per day/week/month/year):</label>
+                <input type="number" id="taskMinutesIAF0" required>
+
+                <label for="taskFrequencyIAF0">Frequency (day/week/month/year):</label>
+                <select id="taskFrequencyIAF0">
+                    <option value="day">Day</option>
+                    <option value="week">Week</option>
+                    <option value="month">Month</option>
+                    <option value="year">Year</option>
+                </select>
+
+                <label for="personsInvolvedIAF0">Persons Involved:</label>
+                <input type="number" id="personsInvolvedIAF0" required>
+
+                <p style="font-size: smaller; font-style: italic;"><strong>"Monthly meeting to be attended by Lab Head for 1 hour/month, Time-motion-study takes 30 min / day, Training 6 days/year etc."</strong></p>
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary mb-2" onclick="addIAFTask()">+ Add Task</button>
+        <button type="submit">Calculate IAF</button>
+    </form>
+
+    <div id="iaf-result"></div>
+</div>
+
+<hr>
+<!-- Fifth Calculator: WISN Required Staff Calculator -->
+<div class="container">
+    <h1>WISN based Required Staff Calculator</h1>
+    <form id="wisn-required-staff-form">
+        <label for="totalStaff">Required No. of Staff for principal task (d):</label>
+        <input type="number" id="totalStaff" name="totalStaff" step="0.01" required value="${globalVariables.d}" oninput="updateGlobalVariables('d', this.value)">
+
+        <input type="hidden" id="caf" name="caf" step="0.01" required value="${globalVariables.e}" oninput="updateGlobalVariables('e', this.value)">
+
+        <input type="hidden" id="iaf" name="iaf" step="0.01" required value="${globalVariables.f}" oninput="updateGlobalVariables('f', this.value)">
+
+        <label for="currentStaff">Current Staff Strength (in FTE) (g):</label>
+        <input type="number" id="currentStaff" name="currentStaff" step="0.01" required value="${globalVariables.g}" oninput="updateGlobalVariables('g', this.value)">
+        <p style="font-size: smaller; font-style: italic;"><strong>"Current count of staffs in that particular cohort in Full Time Equivalent (FTE)"</strong></p>
+
+        <button type="button" onclick="calculateWISNRequiredStaff()">Calculate WISN based Required Staff</button>
+    </form>
+    <div id="wisn-staff-result"></div>
+    <canvas id="workloadPieChart" style="max-width: 600px; margin: auto;"></canvas>
+    <canvas id="workloadBarChart" style="max-width: 600px; margin: auto; margin-top: 30px;"></canvas>
+</div>
+<!-- Add the Print Button Here -->
+<div class="row justify-content-center mt-3">
+    <div class="col-auto">
+        <button onclick="window.print()" class="btn btn-primary">Print Page</button>
+    </div>
+</div>
+<script>
+// Global variables
+let globalVariables = {
+    a: null,
+    b: null,
+    c: null,
+    d: null,
+    e: null,
+    f: null,
+    g: null,
+};
+
+// Function to add new Principal Task
+function addPrincipalTask() {
+    const taskCount = document.querySelectorAll('#tasks-container .task-form').length;
+    const newTaskForm = `
+        <div class="form-group task-form">
+            <h3>Task ${taskCount + 1}</h3>
+            <label for="taskName${taskCount}">Task Name:</label>
+            <input type="text" id="taskName${taskCount}" placeholder="Enter task name" required>
+
+            <label for="unitTime${taskCount}">Unit Time for Each Task (Minutes):</label>
+            <input type="number" id="unitTime${taskCount}" placeholder="Enter unit time in Minutes" step="0.01" required>
+            <p style="font-size: smaller; font-style: italic;"><strong>"i.e 8 min/patient's phlebotomy, 10 min/ sample transport trip, 15 min/patient for IP collection"</strong></p>
+
+            <label for="taskCount${taskCount}">Total Per Day Count of the Task for all staffs:
+</label>
+            <input type="number" id="taskCount${taskCount}" placeholder="Enter task count per day" required>
+            <p style="font-size: smaller; font-style: italic;"><strong>"Actual workload/day i.e 510 OP phlebotomy patients/ day, 24 sample trips/ day, 60 test-record entry/ day"</strong></p>
+        </div>
+    `;
+    document.getElementById('tasks-container').insertAdjacentHTML('beforeend', newTaskForm);
+}
+
+// Function to add new CAF Task
+function addCAFTask() {
+    const taskCount = document.querySelectorAll('#caf-tasks-container .task').length;
+    const newTaskForm = `
+        <div class="form-group task">
+            <h3>Task ${taskCount + 1}</h3>
+            <label for="taskNameCAF${taskCount}">Task Name:</label>
+            <input type="text" id="taskNameCAF${taskCount}" placeholder="Enter task name" required>
+
+            <label for="taskMinutesCAF${taskCount}">Total Minutes Required/Day:</label>
+            <input type="number" id="taskMinutesCAF${taskCount}" placeholder="Enter total minutes required by all staffs  for task"  required>
+            <p style="font-size: smaller; font-style: italic;"><strong>"Stock -register maintaining = 8 min/day, Cotton-box preparing = 2 hours/day are required time for each supporting task in lab"</strong></p>
+        </div>
+    `;
+    document.getElementById('caf-tasks-container').insertAdjacentHTML('beforeend', newTaskForm);
+}
+
+// Function to add new IAF Task
+function addIAFTask() {
+    const taskCount = document.querySelectorAll('#taskInputs .task').length;
+    const newTaskForm = `
+        <div class="form-group task">
+            <h3>Task ${taskCount + 1}</h3>
+            <label for="taskNameIAF${taskCount}">Task Name:</label>
+            <input type="text" id="taskNameIAF${taskCount}" required>
+
+            <label for="taskMinutesIAF${taskCount}">Minutes required for this task (per day/week/month/year):</label>
+            <input type="number" id="taskMinutesIAF${taskCount}" required>
+
+            <label for="taskFrequencyIAF${taskCount}">Frequency (day/week/month/year):</label>
+            <select id="taskFrequencyIAF${taskCount}">
+                <option value="day">Day</option>
+                <option value="week">Week</option>
+                <option value="month">Month</option>
+                <option value="year">Year</option>
+            </select>
+
+            <label for="personsInvolvedIAF${taskCount}">Persons Involved:</label>
+            <input type="number" id="personsInvolvedIAF${taskCount}" required>
+
+            <p style="font-size: smaller; font-style: italic;"><strong>"Monthly meeting to be attended by Lab Head for 1 hour/month, Time-motion-study takes 30 min / day, Training 6 days/year etc."</strong></p>
+        </div>
+    `;
+    document.getElementById('taskInputs').insertAdjacentHTML('beforeend', newTaskForm);
+}
+
+function updateGlobalVariables(variable, value) {
+    globalVariables[variable] = parseFloat(value);
+    autofillForms();
+}
+
+function autofillForms() {
+    // Autofill inputs with global variables if they exist
+    if (globalVariables.a !== null) {
+        document.querySelectorAll('input[id*="workdays"], input[id*="workDaysPerYear"]').forEach(input => input.value = globalVariables.a);
+    }
+    if (globalVariables.b !== null) {
+        document.querySelectorAll('input[id*="workhours"], input[id*="availableHours"], input[id*="workHoursPerDay"]').forEach(input => input.value = globalVariables.b);
+    }
+    if (globalVariables.d !== null) {
+        document.getElementById('totalStaff').value = globalVariables.d;
+    }
+    if (globalVariables.e !== null) {
+        document.getElementById('caf').value = globalVariables.e;
+    }
+    if (globalVariables.f !== null) {
+        document.getElementById('iaf').value = globalVariables.f;
+    }
+    if (globalVariables.g !== null) {
+        document.getElementById('currentStaff').value = globalVariables.g;
+        document.getElementById('currentStaffFirst').value = globalVariables.g;
+    }
+    // Add similar logic for other variables if needed
+}
+
+// First Calculator: Calculate Available Work Hours/Year
+function calculateWISN() {
+    const workdays = globalVariables.a;
+    const workhours = globalVariables.b;
+    const currentStaff = globalVariables.g;
+
+    if (workdays && workhours) {
+        globalVariables.c = workdays * workhours;
+        document.getElementById('available-workhours-result').innerHTML = `Available Work Hours/Year: ${globalVariables.c}`;
+    } else {
+        alert('Please fill in all the fields.');
+    }
+}
+
+// Second Calculator: Calculate Required Staff
+function calculateStaff() {
+    const tasksCount = document.querySelectorAll('#tasks-container .task-form').length;
+    const resultsContainer = document.getElementById('principal-task-result');
+    resultsContainer.innerHTML = ''; 
+
+    let totalRequiredStaff = 0;
+    let taskStaffCounts = [];
+
+    for (let i = 0; i < tasksCount; i++) {
+        const unitTime = parseFloat(document.getElementById(`unitTime${i}`).value);
+        const availableHours = parseFloat(globalVariables.b);
+        const taskCount = parseFloat(document.getElementById(`taskCount${i}`).value);
+        const workDays = parseFloat(globalVariables.a);
+
+        if (isNaN(unitTime) || isNaN(availableHours) || isNaN(taskCount) || isNaN(workDays)) {
+            alert(`Please fill in all fields for Task ${i + 1} with valid numbers.`);
+            return;
+        }
+
+        const standardWorkload = (availableHours * workDays * 60) / unitTime;
+        const actualWorkload = taskCount * workDays;
+        const requiredStaff = actualWorkload / standardWorkload;
+        totalRequiredStaff += requiredStaff;
+        taskStaffCounts.push(requiredStaff);
+
+        resultsContainer.innerHTML += `
+            <p>Task ${i + 1}: Required Number of Staff: ${requiredStaff.toFixed(2)}</p>
+        `;
+    }
+
+    resultsContainer.innerHTML += `<h3>Required No. of staff for principal task: ${totalRequiredStaff.toFixed(2)} FTE</h3>`;
+    globalVariables.d = totalRequiredStaff.toFixed(2); // Update the global variable 'd' with the total required staff
+    autofillForms(); // Autofill forms with the updated global variable 'd'
+
+    // Plot the pie chart for principal task weightage distribution
+    const taskWeightages = taskStaffCounts.map(staffCount => (staffCount / totalRequiredStaff) * 100);
+    const taskLabels = taskStaffCounts.map((_, index) => `Task ${index + 1} Weightage`);
+
+    const ctxPrincipalTasksPie = document.getElementById('principalTasksPieChart').getContext('2d');
+    new Chart(ctxPrincipalTasksPie, {
+        type: 'pie',
+        data: {
+            labels: taskLabels,
+            datasets: [{
+                data: taskWeightages,
+                backgroundColor: taskLabels.map(() => '#' + Math.floor(Math.random() * 16777215).toString(16)), // Random colors for each task
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Weightage Distribution of Different Principal Tasks'
+                }
+            }
+        }
+    });
+}
+
+// Third Calculator: Calculate CAF
+function calculateCAF() {
+    const taskCount = document.querySelectorAll('#caf-tasks-container .task').length;
+    const availableHours = parseFloat(globalVariables.b);
+    let totalMinutes = 0;
+    let totalCAS = 0;
+
+    for (let i = 0; i < taskCount; i++) {
+        const taskMinutes = parseFloat(document.getElementById(`taskMinutesCAF${i}`).value);
+        totalMinutes += taskMinutes;
+
+        const CAS = taskMinutes / (60 * availableHours);
+        totalCAS += CAS;
+    }
+
+    const CAF = 1 / (1 - (totalCAS));
+
+    document.getElementById('caf-result').innerHTML = `
+        <h2>Results</h2>
+        <p>Total Minutes Required for All Tasks: ${totalMinutes.toFixed(2)} minutes</p>
+        <p>Total CAS of All Tasks: ${totalCAS.toFixed(2)}</p>
+        <p>Category Allowance Factor (CAF): ${CAF.toFixed(2)}</p>
+    `;
+    globalVariables.e = CAF.toFixed(2); // Update the global variable 'e' with the calculated CAF
+    autofillForms(); // Autofill forms with the updated global variable 'e'
+}
+
+// Fourth Calculator: Calculate IAF
+document.getElementById('iafForm').addEventListener('submit', calculateIAF);
+
+function calculateIAF(event) {
+    event.preventDefault();
+
+    const workHoursPerDay = parseFloat(globalVariables.b);
+    const workDaysPerYear = parseInt(globalVariables.a);
+    const totalWorkHoursPerYear = workHoursPerDay * workDaysPerYear * 60; // In minutes
+    const numTasks = document.querySelectorAll('#taskInputs .task').length;
+
+    let totalMinutesPerYear = 0;
+
+    for (let i = 0; i < numTasks; i++) {
+        const taskMinutes = parseInt(document.getElementById(`taskMinutesIAF${i}`).value);
+        const taskFrequency = document.getElementById(`taskFrequencyIAF${i}`).value;
+        const personsInvolved = parseInt(document.getElementById(`personsInvolvedIAF${i}`).value);
+
+        let taskMinutesPerYear;
+        switch (taskFrequency) {
+            case 'day':
+                taskMinutesPerYear = taskMinutes * workDaysPerYear;
+                break;
+            case 'week':
+                taskMinutesPerYear = taskMinutes * 52;
+                break;
+            case 'month':
+                taskMinutesPerYear = taskMinutes * 12;
+                break;
+            case 'year':
+                taskMinutesPerYear = taskMinutes;
+                break;
+            default:
+                taskMinutesPerYear = 0;
+        }
+
+        totalMinutesPerYear += taskMinutesPerYear * personsInvolved;
+    }
+
+    const IAF = totalMinutesPerYear / totalWorkHoursPerYear;
+
+    const resultsDiv = document.getElementById('iaf-result');
+    resultsDiv.innerHTML = `
+        <h2>Results</h2>
+        <p>Total Available Work Hours per Year (in minutes): ${totalWorkHoursPerYear}</p>
+        <p>Total Minutes Required for All Ancillary Tasks per Year: ${totalMinutesPerYear}</p>
+        <p>Individual Allowance Factor (IAF): ${IAF.toFixed(4)}</p>
+    `;
+    globalVariables.f = IAF.toFixed(4); // Update the global variable 'f' with the calculated IAF
+    autofillForms(); // Autofill forms with the updated global variable 'f'
+}
+
+// Fifth Calculator: Calculate WISN Required Staff
+function calculateWISNRequiredStaff() {
+    const totalStaff = parseFloat(document.getElementById('totalStaff').value);
+    const caf = parseFloat(document.getElementById('caf').value);
+    const iaf = parseFloat(document.getElementById('iaf').value);
+    const currentStaff = parseFloat(document.getElementById('currentStaff').value);
+
+    if (!isNaN(totalStaff) && !isNaN(caf) && !isNaN(iaf) && !isNaN(currentStaff)) {
+        const wisnRequiredStaff = (totalStaff * caf) + iaf;
+
+        let workloadMessage = '';
+        const workloadDifference = wisnRequiredStaff - currentStaff;
+        const highWorkloadThreshold = 0.25 * currentStaff;
+        const mildWorkloadThreshold = 0.15 * currentStaff;
+
+        if (workloadDifference > highWorkloadThreshold) {
+            workloadMessage = `<span style="color: red; text-decoration: underline;">High workload</span><br>Extra staffs required = ${(wisnRequiredStaff - currentStaff).toFixed(2)} FTE`;
+        } else if (workloadDifference < -highWorkloadThreshold) {
+            workloadMessage = `Low workload<br>Staff redundancy = ${(currentStaff - wisnRequiredStaff).toFixed(2)} FTE`;
+        } else if (workloadDifference > mildWorkloadThreshold) {
+            workloadMessage = "Mildly High Workload";
+        } else if (workloadDifference < -mildWorkloadThreshold) {
+            workloadMessage = "Mildly Low Workload";
+        } else {
+            workloadMessage = "Optimum workload";
+        }
+
+        document.getElementById('wisn-staff-result').innerHTML = `
+            <h2>WISN based Required Staff count: ${wisnRequiredStaff.toFixed(2)} FTE</h2>
+            <p>${workloadMessage}</p>
+        `;
+
+        // Calculate weightages for the pie chart and bar chart
+        const principalTaskWeightage = (totalStaff / wisnRequiredStaff) * 100;
+        const supportingTaskWeightage = (((caf - 1) * totalStaff) / wisnRequiredStaff) * 100;
+        const ancillaryTaskWeightage = (iaf / wisnRequiredStaff) * 100;
+
+        // Generate Pie Chart
+        const ctxPie = document.getElementById('workloadPieChart').getContext('2d');
+        new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+                labels: ['Principal Task Weightage', 'Supporting Task Weightage', 'Ancillary Task Weightage'],
+                datasets: [{
+                    data: [principalTaskWeightage.toFixed(2), supportingTaskWeightage.toFixed(2), ancillaryTaskWeightage.toFixed(2)],
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                }
+            }
+        });
+
+        // Generate Bar Chart
+        const ctxBar = document.getElementById('workloadBarChart').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ['Principal Task Weightage', 'Supporting Task Weightage', 'Ancillary Task Weightage'],
+                datasets: [{
+                    label: '% Weightage',
+                    data: [principalTaskWeightage.toFixed(2), supportingTaskWeightage.toFixed(2), ancillaryTaskWeightage.toFixed(2)],
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+                    borderColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                }
+            }
+        });
+
+    } else {
+        alert('Please fill in all fields with valid numbers.');
+    }
+}
+
+// Show or hide the 'Other' employee type input field based on selection
+document.getElementById('employeeType').addEventListener('change', function() {
+    const otherEmployeeType = document.getElementById('otherEmployeeType');
+    const otherEmployeeTypeLabel = document.getElementById('otherEmployeeTypeLabel');
+    if (this.value === 'others') {
+        otherEmployeeType.style.display = 'block';
+        otherEmployeeTypeLabel.style.display = 'block';
+    } else {
+        otherEmployeeType.style.display = 'none';
+        otherEmployeeTypeLabel.style.display = 'none';
+    }
+});
+
+
+document.getElementById('shareBtn').addEventListener('click', function() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'PRAYOJN - Platform for Resource Allocation and Optimization of Necessities',
+            text: 'Check out PRAYOJN, a platform for optimizing healthcare staffing.',
+            url: window.location.href
+        }).then(() => {
+            console.log('Thanks for sharing!');
+        }).catch(console.error);
+    } else {
+        alert('Sharing is not supported on this browser. Please copy the link manually.');
+    }
+});
+
+</script>
+</body>
+</html>
